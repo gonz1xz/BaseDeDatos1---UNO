@@ -1,0 +1,400 @@
+---------SCRIPT TP Nº 2 BD----------
+set datestyle = iso  ;
+Set Schema 'public'; 
+Show search_path;
+
+--Drop VIEW IF EXISTS Remitos;
+--Drop VIEW IF EXISTS Ordenes_Compra;
+--Drop VIEW IF EXISTS Prendas;
+--Drop VIEW IF EXISTS Fabricantes;
+--Drop VIEW IF EXISTS Facturas;
+--Drop VIEW IF EXISTS Clientes;
+--Drop VIEW IF EXISTS Prendas_Facturas;
+--Drop VIEW IF EXISTS Prendas_Ord_Comp;
+--Drop VIEW IF EXISTS Cli_Mayor;
+--Drop VIEW IF EXISTS Cli_Auton;
+
+
+Drop TABLE IF EXISTS Prendas_Facturas;
+Drop TABLE IF EXISTS Prendas_Ord_Comp;
+Drop TABLE IF EXISTS Remitos;
+Drop TABLE IF EXISTS Ordenes_Compra;
+Drop TABLE IF EXISTS Prendas;
+Drop TABLE IF EXISTS Rubros;
+Drop TABLE IF EXISTS Fabricantes;
+Drop TABLE IF EXISTS Facturas;
+Drop TABLE IF EXISTS Clientes;
+Drop TABLE IF EXISTS Cli_Mayor;
+Drop TABLE IF EXISTS Cli_Auton;
+
+---------------------CREACION DE TABLAS-------------------
+
+Create table remitos 
+(id_remito    char(5),
+ fecha        date,
+CONSTRAINT CHK_Remitos_id CHECK (id_remito > ' '));
+
+ALTER TABLE remitos ADD CONSTRAINT Pk_remitos PRIMARY KEY(id_remito);
+ALTER TABLE remitos ADD CONSTRAINT CHK_remitos_fec CHECK (fecha >= '2000-01-01');
+---------------------------------------
+
+---------------------------------------
+Create table Fabricantes 
+(CUIT    char(12),
+Calle varchar (20),
+Localidad varchar (20),
+Cod_Postal char (4),
+Razon_Social varchar (25),
+Email varchar (30),
+Telefono varchar (15),
+CONSTRAINT CHK_Fabricantes_id CHECK (CUIT > ' '));
+
+ALTER TABLE Fabricantes ADD CONSTRAINT Pk_Fabricantes PRIMARY KEY(CUIT);
+----------------------------------------
+Create table Ordenes_Compra
+(id_ord_comp    char(5),
+ CUIT char(12),
+ fecha          date,
+CONSTRAINT CHK_Ordenes_Compra_id CHECK (id_ord_comp > ' '));
+
+ALTER TABLE ordenes_compra ADD CONSTRAINT Pk_ordenes_compra PRIMARY KEY(id_ord_comp);
+ALTER TABLE ordenes_compra ADD CONSTRAINT CHK_ordenes_compra_fec CHECK (fecha >= '2000-01-01');
+ALTER TABLE ordenes_compra ADD CONSTRAINT FK_ordenes_compra_CUIT FOREIGN KEY (CUIT)
+            REFERENCES Fabricantes   ON UPDATE CASCADE ON DELETE Set Null;
+
+Create table Rubros
+(Id_rubro char (4),
+Nombre varchar(15)
+CONSTRAINT CHK_id_rubro CHECK (id_rubro > ' '));
+ALTER TABLE Rubros ADD CONSTRAINT Pk_Rubros PRIMARY KEY(Id_Rubro);
+
+----------------------------------------
+Create table Prendas
+(Cod_Prenda    char(4),
+CUIT char(12),
+Id_rubro char (3),
+Descripcion char (20),
+Talle varchar(3),
+Precio_unit decimal(9,2),
+Stock_min int,
+Stock_max int,
+Stock int,
+CONSTRAINT CHK_cod_prenda_id CHECK (Cod_prenda > ' '));
+ALTER TABLE Prendas ADD CONSTRAINT Pk_Prendas PRIMARY KEY(Cod_Prenda);
+ALTER TABLE Prendas ADD CONSTRAINT FK_Prendas_CUIT FOREIGN KEY (CUIT)
+            REFERENCES Fabricantes   ON UPDATE CASCADE ON DELETE Set Null;
+ALTER TABLE Prendas ADD CONSTRAINT FK_Prendas_Rubro FOREIGN KEY (Id_rubro)
+            REFERENCES Rubros   ON UPDATE CASCADE ON DELETE Set Null;
+---------------------------------------
+
+Create table Clientes
+(Id_cliente    char(4),
+Email varchar (30),
+Telefono varchar (15),
+Calle varchar (20),
+Localidad varchar (20),
+Cod_Postal char (4),
+CONSTRAINT CHK_Id_cliente CHECK (id_cliente > ' '));
+
+ALTER TABLE Clientes ADD CONSTRAINT Pk_Clientes PRIMARY KEY(Id_Cliente);
+-------------------------------------
+Create table Cli_Mayor
+(Id_cliente    char(4),
+CUIT varchar(12),
+Mtos_Cuad_Loc decimal(9,2),
+Nom_Cont varchar (15),
+Ape_Cont varchar (15),
+Razon_Social varchar (25),
+CONSTRAINT CHK_Id_cliente CHECK (id_cliente > ' '));
+
+ALTER TABLE Cli_Mayor ADD CONSTRAINT Pk_Cli_Mayor PRIMARY KEY(Id_Cliente);
+--------------------------------------
+Create table Cli_Auton
+(Id_cliente    char(4),
+DNI varchar (8),
+Fecha_Nac date,
+Modo_Retiro varchar(15),
+Nombre varchar (15),
+Apellido varchar (15),
+CONSTRAINT CHK_Id_cliente CHECK (id_cliente > ' '));
+
+ALTER TABLE Cli_Auton ADD CONSTRAINT Pk_Cli_Auton PRIMARY KEY(Id_Cliente);
+
+----------------------------------------
+Create table Facturas
+(Id_Fact    char(6),
+Id_cliente char(4),
+Fecha date,
+CONSTRAINT CHK_Id_Fact CHECK (id_fact > ' '));
+ALTER TABLE Facturas ADD CONSTRAINT Pk_Facturas PRIMARY KEY(Id_Fact);
+ALTER TABLE Facturas ADD CONSTRAINT FK_Fact_id_cliente FOREIGN KEY (Id_cliente)
+            REFERENCES Clientes   ON UPDATE CASCADE ON DELETE Set Null;
+------------------------------------------
+Create table Prendas_facturas
+(Id_Fact    char(6),
+Cod_prenda char(4),
+Cantidad int,
+Precio_tot decimal(9,2),
+CONSTRAINT CHK_Id_Fact CHECK (id_fact > ' '),
+CONSTRAINT CHK_Cod_Prenda CHECK (cod_prenda > ' '),
+CONSTRAINT CHK_cantidad CHECK (Cantidad > 0));
+
+ALTER TABLE Prendas_facturas ADD CONSTRAINT Pk_prenda_fact PRIMARY KEY (Id_fact, Cod_prenda);
+ALTER TABLE Prendas_facturas ADD CONSTRAINT FK_prenda_fact FOREIGN KEY (Cod_prenda)
+            REFERENCES Prendas   ON UPDATE CASCADE ON DELETE Set Null;
+ALTER TABLE Prendas_facturas ADD CONSTRAINT FK_prenda_fact2 FOREIGN KEY (Id_fact)
+            REFERENCES Facturas   ON UPDATE CASCADE ON DELETE Set Null;
+
+----------------------------------------------
+
+Create table Prendas_Ord_Comp
+(Cod_Prenda    char(4),
+id_ord_comp    char(5),
+Cantidad int,
+CONSTRAINT CHK_Id_Fact CHECK (cod_prenda > ' '),
+CONSTRAINT CHK_Id_Ord_comp CHECK (id_ord_comp > ' '),
+CONSTRAINT CHK_cantidad CHECK (Cantidad > 0));
+
+ALTER TABLE Prendas_Ord_Comp ADD CONSTRAINT Pk_Prendas_Ord_Comp PRIMARY KEY (Cod_prenda, id_ord_comp);
+ALTER TABLE Prendas_Ord_Comp ADD CONSTRAINT FK_Prendas_Ord_Comp FOREIGN KEY (Cod_prenda)
+            REFERENCES Prendas  ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE Prendas_Ord_Comp ADD CONSTRAINT FK_Prendas_Ord_Comp2 FOREIGN KEY (id_ord_comp)
+            REFERENCES Ordenes_compra   ON UPDATE CASCADE ON DELETE Set Null;
+
+---------INSERCION DE VALORES--------------------------
+
+INSERT INTO FABRICANTES VALUES (11223344559,'Pirovano 65','Merlo',1722,'Del Tucuman S.A.','tucumanSA@gmail.com',4804692);
+INSERT INTO FABRICANTES VALUES (22334455997,'Machado 132','Merlo',1722,'Oeste Prendas SA','oesteprendas@gmail.com',4801799);
+INSERT INTO FABRICANTES VALUES (33445577881,'JD Peron 47851','Moron',1708,'Maxiropa SRL','maxiropa@gmail.com',47853512);
+INSERT INTO FABRICANTES VALUES (44556677992,'Gomez Fretes 82','Padua',1718,'Padua indumentaria','paduaindu@hotmail.com',46425879);
+INSERT INTO FABRICANTES VALUES (77998844668,'Av. Echeverry 874','Merlo',1722,'Ropa Center SRL','center_ropa@gmail.com',1124578896);
+INSERT INTO FABRICANTES VALUES (99448877553,'Libertad 791','Moron',1708,'Kiana Indumentaria SRL','KianaIndu@gmail.com',1144021546);
+INSERT INTO FABRICANTES VALUES (20385280816,'Azcuenaga 420','Ituzaingo',1714,'Federico Lacrosse','LacroFede@hotmail.com',1158481648);
+INSERT INTO FABRICANTES VALUES (27225179439,'Sdo Sombra 952','Castelar',1712,'Chiara Cortez','Cc.indumentaria@gmail.com',4941994);
+INSERT INTO FABRICANTES VALUES (27366033637,'Roberto Carlos 98','Moron',1708,'Liliana Fernandez','Lili.fernandez@yahoo.com.ar',49571535);
+INSERT INTO FABRICANTES VALUES (20396458742,'Riven 945','Castelar',1712,'Matias Sosa Matwijow','matwijowmatias@gmail.com',1150402356);
+INSERT INTO FABRICANTES VALUES (21356497821,'Diesel 6114','Ituzaingo',1714,'Tamara Gomez','gomez.tamara77@gmail.com',49568795);
+INSERT INTO FABRICANTES VALUES (27085694812,'Buffano 3820','Padua',1718,'Agustin Mujica','agustinmujica@hotmail.com',4701411);
+INSERT INTO FABRICANTES VALUES (20312525524,'Constitucion 84','Merlo',1722,'Leopoldo Martinez','martinezleopoldo@gmail.com',4854817);
+
+INSERT INTO RUBROS VALUES (101,'CAMPERA');
+INSERT INTO RUBROS VALUES (102,'CAMISA');
+INSERT INTO RUBROS VALUES (103,'REMERA');
+INSERT INTO RUBROS VALUES (104,'PANTALON');
+
+
+INSERT INTO PRENDAS VALUES (1001,11223344559,'101','CAMPERA UNO','XL',50,400,2000,1200);
+INSERT INTO PRENDAS VALUES (1002,22334455997,'101','CAMPERA BLUE','L',100,500,3000,1500);
+INSERT INTO PRENDAS VALUES (1003,33445577881,'103','REMERA ROJA','XS',150,60,400,180);
+INSERT INTO PRENDAS VALUES (1004,44556677992,'104','PANTALON JEANS','M',200,700,5000,2100);
+INSERT INTO PRENDAS VALUES (1005,77998844668,'101','CAMPERA UNO','XXS',250,800,6000,2400);
+INSERT INTO PRENDAS VALUES (1006,99448877553,'104','PANTALON RETROS','XXL',300,900,7000,2700);
+INSERT INTO PRENDAS VALUES (1007,20385280816,'103','REMERA SMOKE','XXS',350,15,100,50);
+INSERT INTO PRENDAS VALUES (1008,27225179439,'102','CAMISA CUADROS','XL',400,400,1750,1023);
+INSERT INTO PRENDAS VALUES (1009,27366033637,'101','CAMPERA SIMPLE','L',450,300,2000,1020);
+INSERT INTO PRENDAS VALUES (1010,20396458742,'104','PANTALON JOGGIN','M',500,600,1400,891);
+INSERT INTO PRENDAS VALUES (1011,21356497821,'102','CAMISA RAYADA','M',550,100,200,101);
+INSERT INTO PRENDAS VALUES (1012,27085694812,'102','CAMISA LISA','S',600,80,150,120);
+INSERT INTO PRENDAS VALUES (1013,20312525524,'101','CAMPERA WHITE','XS',650,1400,2000,1542);
+
+
+--INSERT INTO CLIENTES VALUES (Id_Cliente	Mail				Telefono	Calle			Localidad	CP)
+INSERT INTO CLIENTES VALUES (1212,'NFSA@gmail.com',4815793,'Libertad 4521','Merlo',1722);
+INSERT INTO CLIENTES VALUES (1071,'SRG.Indumentaria@gmail.com',4821800,'San Martin 48','Merlo',1722);
+INSERT INTO CLIENTES VALUES (1300,'Pedro_Martinez@hotmail.com',47853512,'Cabral 4652','Merlo',1722);
+INSERT INTO CLIENTES VALUES (1122,'Queen.Indu.SRL@gmail.com',46425879,'Belgrano 3012','Padua',1718);
+INSERT INTO CLIENTES VALUES (1329,'Mercadona_SA@hotmail.com',1124578896,'JM Rosas 8712','Ituzaingo',1714);
+INSERT INTO CLIENTES VALUES (1502,'BelladonaSRL@gmail.com',1144021546,'Pinedo 120','Moron',1708);
+INSERT INTO CLIENTES VALUES (1035,'Barrica.andres@hotmail.com',1158481648,'JJ Paso 570','Castelar',1712);
+INSERT INTO CLIENTES VALUES (1410,'Alvarado.tamara@gmail.com',4941994,'Saavedra 320','Moreno',1744);
+INSERT INTO CLIENTES VALUES (1003,'Maidana_oscar@hotmail.com',49571535,'Moreno 881','Padua',1718);
+INSERT INTO CLIENTES VALUES (1227,'Aguilargaby@hotmail.com',1150402356,'Avellaneda 1010','Ituzaingo',1714);
+INSERT INTO CLIENTES VALUES (1500,'Vallejosmai@gmail.com',49568795,'Caseros 3233','Ituzaingo',1714);
+INSERT INTO CLIENTES VALUES (1103,'Etorres@gmail.com',4701411,'Urquiza 98','Moron',1708);
+INSERT INTO CLIENTES VALUES (1104,'SoteloAlejandro@hotmail.com',4854817,'Sarmiento 628','Padua',1718);
+
+--INSERT INTO FACTURAS VALUES (IdFactura	IdCliente	Fecha)
+INSERT INTO FACTURAS VALUES (102031,1212,'2021/02/10');
+INSERT INTO FACTURAS VALUES (112232,1071,'2014/08/24');
+INSERT INTO FACTURAS VALUES (138050,1300,'2021/08/07');
+INSERT INTO FACTURAS VALUES (110203,1122,'2021/08/31');
+INSERT INTO FACTURAS VALUES (100230,1329,'2021/08/14');
+INSERT INTO FACTURAS VALUES (154201,1502,'2020/08/14');
+INSERT INTO FACTURAS VALUES (100323,1035,'2014/04/13');
+INSERT INTO FACTURAS VALUES (101861,1410,'2021/07/31');
+INSERT INTO FACTURAS VALUES (121947,1003,'2020/08/14');
+INSERT INTO FACTURAS VALUES (130558,1227,'2018/06/30');
+INSERT INTO FACTURAS VALUES (140410,1500,'2014/03/11');
+INSERT INTO FACTURAS VALUES (111245,1103,'2014/02/13');
+INSERT INTO FACTURAS VALUES (133233,1104,'2019/02/10');
+INSERT INTO FACTURAS VALUES (111246,1103,'2021/07/10');
+INSERT INTO FACTURAS VALUES (133237,1104,'2021/07/18');
+---
+INSERT INTO FACTURAS VALUES (134321,1104,'2021/07/18');
+INSERT INTO FACTURAS VALUES (134322,1104,'2021/07/20');
+INSERT INTO FACTURAS VALUES (134323,1104,'2021/07/21');
+INSERT INTO FACTURAS VALUES (134324,1104,'2021/07/10');
+INSERT INTO FACTURAS VALUES (134325,1104,'2021/07/5');
+
+
+--INSERT INTO CLI_MAYOR VALUES (Id_Cliente		CUIT		m^2_local	Nom_Cont	Ape_Cont	Razon_social)
+INSERT INTO CLI_MAYOR VALUES (1212,35225544991,15,'Federico','Gomez','NF SA');
+INSERT INTO CLI_MAYOR VALUES (1071,46551347892,13,'Tamara','Perez','SRG Indumentaria');
+INSERT INTO CLI_MAYOR VALUES (1300,13311545689,20,'Nicolas','Martinez','Pedro Martinez');
+INSERT INTO CLI_MAYOR VALUES (1122,36336655002,8,'Alicia','Hernandez','Queen Indu SRL');
+INSERT INTO CLI_MAYOR VALUES (1329,24422656790,16,'Yanina','Fernandez','Mercadona SA');
+INSERT INTO CLI_MAYOR VALUES (1502,57662458903,10,'David','Gonzalez','Belladona SRL');
+INSERT INTO CLI_MAYOR VALUES (1035,47447766113,11,'Ezequiel','Alvarez','Barrica Andres');
+
+--INSERT INTO CLI_AUTON VALUES ('Id_Cliente	DNI	Fecha_Nac	Modo_retiro	Nombre	Apellido
+INSERT INTO CLI_AUTON VALUES (1410,39639192,'1994/08/11','Envio','Tamara','Alvarado');
+INSERT INTO CLI_AUTON VALUES (1003,37700474,'1991/10/23','Retiro','Oscar','Maidana');
+INSERT INTO CLI_AUTON VALUES (1227,33628054,'1997/01/12','Envio','Gabriel','Aguilar');
+INSERT INTO CLI_AUTON VALUES (1500,40400401,'1995/06/12','Envio','Mailen','Vallejos');
+INSERT INTO CLI_AUTON VALUES (1103,10252411,'1971/11/28','Retiro','Ezequiel','Torres');
+INSERT INTO CLI_AUTON VALUES (1104,17524150,'1976/04/02','Envio','Alejandro','Sotelo');
+
+--INSERT INTO ORDENES_COMPRA VALUES ('id_ord_comp, CUIT,	fecha)
+INSERT INTO ORDENES_COMPRA VALUES (10001,11223344559,'2006/07/14');
+INSERT INTO ORDENES_COMPRA VALUES (10002,22334455997,'2007/04/30');
+INSERT INTO ORDENES_COMPRA VALUES (10003,33445577881,'2008/02/02');
+INSERT INTO ORDENES_COMPRA VALUES (10004,44556677992,'2009/03/15');
+INSERT INTO ORDENES_COMPRA VALUES (10005,77998844668,'2010/04/16');
+INSERT INTO ORDENES_COMPRA VALUES (10006,99448877553,'2011/05/20');
+INSERT INTO ORDENES_COMPRA VALUES (10007,20385280816,'2011/06/24');
+INSERT INTO ORDENES_COMPRA VALUES (10008,27225179439,'2011/07/14');
+INSERT INTO ORDENES_COMPRA VALUES (10009,27366033637,'2012/07/19');
+INSERT INTO ORDENES_COMPRA VALUES (10010,20396458742,'2020/08/03');
+INSERT INTO ORDENES_COMPRA VALUES (10011,21356497821,'2020/08/17');
+INSERT INTO ORDENES_COMPRA VALUES (10012,27085694812,'2020/07/19');
+INSERT INTO ORDENES_COMPRA VALUES (10013,20312525524,'2020/07/05');
+INSERT INTO ORDENES_COMPRA VALUES (10014,11223344559,'2016/09/16');
+INSERT INTO ORDENES_COMPRA VALUES (10015,27225179439,'2017/09/29');
+INSERT INTO ORDENES_COMPRA VALUES (10016,77998844668,'2018/10/13');
+INSERT INTO ORDENES_COMPRA VALUES (10017,27366033637,'2019/02/20');
+INSERT INTO ORDENES_COMPRA VALUES (10018,20312525524,'2020/02/17');
+
+
+--INSERT INTO REMITOS VALUES ('id_remito	fecha)
+INSERT INTO REMITOS VALUES (10001,'2006/07/21');
+INSERT INTO REMITOS VALUES (10002,'2007/05/07');
+INSERT INTO REMITOS VALUES (10003,'2008/02/09');
+INSERT INTO REMITOS VALUES (10004,'2009/03/22');
+INSERT INTO REMITOS VALUES (10005,'2010/04/23');
+INSERT INTO REMITOS VALUES (10006,'2011/05/27');
+INSERT INTO REMITOS VALUES (10007,'2011/07/01');
+INSERT INTO REMITOS VALUES (10008,'2011/07/21');
+INSERT INTO REMITOS VALUES (10009,'2012/07/26');
+INSERT INTO REMITOS VALUES (10010,'2020/08/10');
+INSERT INTO REMITOS VALUES (10011,'2020/08/24');
+INSERT INTO REMITOS VALUES (10012,'2020/07/26');
+INSERT INTO REMITOS VALUES (10013,'2020/07/12');
+INSERT INTO REMITOS VALUES (10014,'2016/09/23');
+INSERT INTO REMITOS VALUES (10015,'2017/10/06');
+INSERT INTO REMITOS VALUES (10016,'2018/10/20');
+INSERT INTO REMITOS VALUES (10017,'2019/02/27');
+INSERT INTO REMITOS VALUES (10018,'2020/02/24');
+
+--INSERT INTO Prendas_facturas VALUES ('ID_Factura	Id_Prenda	Cantidad	Precio_Total)
+INSERT INTO Prendas_facturas VALUES (102031,1001,40,2500);
+INSERT INTO Prendas_facturas VALUES (112232,1002,20,2000);
+INSERT INTO Prendas_facturas VALUES (138050,1003,35,5250);
+INSERT INTO Prendas_facturas VALUES (110203,1004,14,2800);
+INSERT INTO Prendas_facturas VALUES (100230,1005,20,5000);
+INSERT INTO Prendas_facturas VALUES (154201,1006,14,4200);
+INSERT INTO Prendas_facturas VALUES (100323,1007,15,5250);
+INSERT INTO Prendas_facturas VALUES (101861,1008,82,32800);
+INSERT INTO Prendas_facturas VALUES (121947,1009,20,7000);
+INSERT INTO Prendas_facturas VALUES (130558,1010,15,7500);
+INSERT INTO Prendas_facturas VALUES (140410,1011,10,5500);
+INSERT INTO Prendas_facturas VALUES (111245,1012,30,18000);
+INSERT INTO Prendas_facturas VALUES (133233,1013,10,6500);
+INSERT INTO Prendas_facturas VALUES (111246,1013,30,6000);
+INSERT INTO Prendas_facturas VALUES (133237,1013,10,3500);
+------
+INSERT INTO Prendas_facturas VALUES (134321,1013,20,4000);
+INSERT INTO Prendas_facturas VALUES (134322,1005,30,7500);
+INSERT INTO Prendas_facturas VALUES (134323,1001,50,2500);
+INSERT INTO Prendas_facturas VALUES (134324,1002,25,2500);
+INSERT INTO Prendas_facturas VALUES (134325,1009,5,1750);
+
+--- INSERT INTO Prendas_Ord_Comp VALUES (Cod_Prenda,id_ord_comp,Cantidad int)
+INSERT INTO Prendas_Ord_Comp VALUES (1001,10001,200);
+INSERT INTO Prendas_Ord_Comp VALUES (1002,10002,1);		
+INSERT INTO Prendas_Ord_Comp VALUES (1003,10003,150);		
+INSERT INTO Prendas_Ord_Comp VALUES (1004,10004,1200);		
+INSERT INTO Prendas_Ord_Comp VALUES (1005,10005,500);		
+INSERT INTO Prendas_Ord_Comp VALUES (1006,10006,200);		
+INSERT INTO Prendas_Ord_Comp VALUES (1007,10007,20);		
+INSERT INTO Prendas_Ord_Comp VALUES (1008,10008,350);		
+INSERT INTO Prendas_Ord_Comp VALUES (1009,10009,30);		
+INSERT INTO Prendas_Ord_Comp VALUES (1010,10010,100);		
+INSERT INTO Prendas_Ord_Comp VALUES (1011,10011,70);	
+INSERT INTO Prendas_Ord_Comp VALUES (1012,10012,20);		
+INSERT INTO Prendas_Ord_Comp VALUES (1013,10013,100);		
+INSERT INTO Prendas_Ord_Comp VALUES (1001,10014,500);	
+INSERT INTO Prendas_Ord_Comp VALUES (1003,10015,35);			
+INSERT INTO Prendas_Ord_Comp VALUES (1005,10016,450);		
+INSERT INTO Prendas_Ord_Comp VALUES (1007,10017,20);		
+INSERT INTO Prendas_Ord_Comp VALUES (1009,10018,10);	
+------------ PRUEBAS --------------------
+
+--a) Listar los datos completos de los fabricantes de Merlo a los que se les compra más de 5 artículos
+
+select f.* from fabricantes f
+where f.localidad ilike 'merlo' AND cuit in (
+    select cuit from ORDENES_COMPRA oc, prendas_ord_comp poc 
+    where oc.id_ord_comp = poc.id_ord_comp
+    group by cuit
+    having SUM(Cantidad) > 5)
+
+
+--b) Listar los datos completos de los clientes que compraron todos los artículos del rubro "Campera"
+
+select cl.* from clientes cl where not exists
+(select cod_prenda from prendas pr, rubros ru 
+where pr.id_rubro = ru.id_rubro 
+ AND ru.nombre ilike 'Campera' 
+ AND not exists (select 1 from prendas_facturas pf, facturas fa 
+				 where pf.id_fact = fa.id_fact 
+				 AND cl.id_cliente = fa.id_cliente 
+                 AND pf.cod_prenda = pr.cod_prenda))
+				
+
+--c) Listar los datos completos de los clientes que no compraron ningún artículo provistos por el fabricante "Del Tucuman S.A."
+select * from clientes where id_cliente not in
+(select cl.id_cliente from clientes cl, prendas pr, fabricantes f, prendas_facturas pf, facturas fa
+where pr.cuit = f.cuit
+ AND cl.id_cliente = fa.id_cliente
+ AND fa.id_fact = pf.id_fact
+ AND pf.cod_prenda = pr.cod_prenda
+ AND f.razon_social ilike 'Del Tucuman S.A.')
+
+
+
+ 
+--d)Listar los datos completos de los clientes que compraron más cantidad del artículo "Camperita UNO" que la cantidad total de artículos vendidos el 10 de Febrero de este año
+select c.id_cliente,c.email,c.telefono,c.calle,c.localidad,c.cod_postal, pf.cantidad
+from clientes c,facturas f, prendas_facturas pf, prendas p
+where c.id_cliente = f.id_cliente and
+f.id_fact = pf.id_fact and
+pf.cod_prenda = p.cod_prenda and
+p.descripcion ilike 'Campera UNO%'
+group by c.id_cliente,c.email,c.telefono,c.calle,c.localidad,c.cod_postal, pf.cantidad
+having pf.cantidad > (select sum(cantidad) from facturas f, prendas_facturas pf where 
+f.id_fact = pf.id_fact and f.fecha = '2021-02-10')
+
+
+--e) Listar los nombre de las distintas localidades y en la misma línea el total facturado en Agosto de este año y en otra columna el total facturado en Julio de este año
+select distinct localidad, (select SUM(precio_tot) as agosto 
+     from clientes cl, facturas fr, prendas_facturas pf
+     where cl.id_cliente = fr.id_cliente
+     AND fr.id_fact = pf.id_fact							
+     AND fr.fecha between '2021/08/01' AND '2021/08/31')
+   ,(select SUM(precio_tot) as julio
+     from clientes cl, facturas fr, prendas_facturas pf
+     where cl.id_cliente = fr.id_cliente
+     AND fr.id_fact = pf.id_fact
+     AND fr.fecha between '2021/07/01' AND '2021/07/31')
+from clientes
+
