@@ -1,2 +1,2 @@
 # bdd1
-Cursada Base de datos 1
+Practicas de cursada Base de datos 1
